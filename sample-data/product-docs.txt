@@ -1,0 +1,22 @@
+Aurora API — Developer Documentation (Excerpt)
+
+Authentication
+Aurora API uses bearer token authentication. Requests must include an Authorization header in the format "Bearer <api_key>". API keys are scoped per project and can be generated from the Aurora dashboard under Settings > API Keys. Keys prefixed with "test_" only work against the sandbox environment at sandbox.aurora.dev; production keys are prefixed with "live_" and must be used against api.aurora.dev.
+
+Rate Limits
+The default rate limit is 100 requests per minute per API key, with a burst allowance of 20 additional requests. Enterprise plans can request higher limits by contacting support. Rate limit status is returned in the X-RateLimit-Remaining and X-RateLimit-Reset response headers. Exceeding the limit returns a 429 status code with a Retry-After header indicating the number of seconds to wait.
+
+Webhooks
+Aurora supports webhooks for the following events: payment.succeeded, payment.failed, subscription.created, subscription.cancelled, and dispute.opened. Webhook payloads are signed using HMAC-SHA256; the signature is included in the X-Aurora-Signature header. To verify a webhook, concatenate the timestamp and raw request body with a period, compute the HMAC using your webhook signing secret, and compare it to the provided signature using a constant-time comparison.
+
+Pagination
+List endpoints use cursor-based pagination. Each response includes a "next_cursor" field; pass this value as the "cursor" query parameter on the subsequent request to retrieve the next page. A null "next_cursor" indicates the last page has been reached. The default page size is 25 items and can be adjusted with the "limit" parameter, up to a maximum of 100.
+
+Idempotency
+POST requests that create resources (charges, subscriptions, refunds) accept an optional Idempotency-Key header. If a request with the same idempotency key is received within 24 hours, Aurora returns the original response instead of creating a duplicate resource. Idempotency keys should be unique per logical operation, typically a UUID generated client-side.
+
+Error Codes
+Aurora returns standard HTTP status codes. 400 indicates a malformed request (see the "error.message" field for details). 401 indicates an invalid or missing API key. 402 indicates a failed payment action, such as an insufficient funds decline. 409 indicates a conflict, such as attempting to cancel an already-cancelled subscription. 500 indicates an internal Aurora error; these are automatically retried by Aurora's own infrastructure and rarely require client-side handling.
+
+SDKs
+Official SDKs are available for Python (pip install aurora-sdk), Node.js (npm install @aurora/sdk), and Ruby (gem install aurora-sdk). All SDKs handle retries with exponential backoff automatically for 429 and 500-series responses, with a default maximum of 3 retries.

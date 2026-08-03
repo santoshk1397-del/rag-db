@@ -1,0 +1,22 @@
+Northwind Robotics — Employee Handbook (Excerpt)
+
+1. Vacation Policy
+Full-time employees accrue 18 days of paid vacation per calendar year, credited monthly at 1.5 days per month. Vacation days carry over up to a maximum of 10 unused days into the following year; any balance beyond that is forfeited on December 31st. New hires begin accruing vacation from their start date but may not take vacation during their first 60 days of employment except in the case of pre-approved prior commitments disclosed at the time of hire.
+
+2. Remote Work Policy
+Employees may work remotely up to 3 days per week, subject to manager approval. Engineering and Design teams default to a Tuesday/Wednesday/Thursday in-office schedule, with Monday and Friday available as remote days. Fully remote arrangements require VP-level sign-off and are reviewed annually.
+
+3. Expense Reimbursement
+Business expenses under $75 may be submitted without a receipt, using the description field to justify the expense. Expenses of $75 or more require an itemized receipt uploaded to the Expensify portal within 30 days of the purchase. Client entertainment expenses require the client's name and business purpose to be logged; alcohol reimbursement is capped at $50 per person per event.
+
+4. Parental Leave
+Northwind Robotics offers 16 weeks of fully paid parental leave for the primary caregiver and 8 weeks for the secondary caregiver, applicable to birth, adoption, and foster placement. Leave must be taken within 12 months of the qualifying event and can be split into two blocks with manager approval.
+
+5. Equipment and Home Office Stipend
+New employees receive a one-time $1,000 home office stipend, disbursed in the first payroll cycle after their start date. This stipend covers desks, chairs, monitors, and other ergonomic equipment. Laptops and standard peripherals are provided directly by IT and are not deducted from the stipend.
+
+6. Performance Review Cycle
+Performance reviews occur twice yearly, in June and December. Each cycle includes a self-assessment, peer feedback from 2-4 nominated colleagues, and a manager evaluation. Compensation adjustments are typically applied following the December cycle, effective the following January 1st.
+
+7. Code of Conduct — Conflicts of Interest
+Employees must disclose any financial interest in a vendor, competitor, or client to their manager and the People team before engaging in related work. Failure to disclose a known conflict of interest is grounds for disciplinary action up to and including termination.

@@ -1,0 +1,22 @@
+Notes on Retrieval-Augmented Generation (RAG) Systems
+
+Overview
+Retrieval-augmented generation combines a retrieval step with a generative language model to produce answers grounded in an external knowledge source, rather than relying solely on the model's parametric memory. This reduces hallucination and allows the system to answer questions about information the model was never trained on, such as private documents or recent events.
+
+Chunking Strategy
+Documents are typically split into overlapping chunks of 200-800 tokens before embedding. Overlap (commonly 10-20% of chunk size) prevents important context from being split awkwardly across chunk boundaries. Fixed-size chunking is simple but can split sentences mid-thought; semantic chunking, which splits on paragraph or topic boundaries, tends to produce more coherent retrieval results at the cost of variable chunk sizes.
+
+Embedding Models
+Embedding models map text into a dense vector space where semantically similar text is close together, typically measured by cosine similarity. Popular embedding models include OpenAI's text-embedding-3 family, Voyage AI's voyage-3, and Cohere's embed-v3. Embedding dimensionality is a tradeoff: higher dimensions (1024-3072) capture more nuance but increase storage and search costs; lower dimensions (384-768) are cheaper and faster but may lose some semantic precision.
+
+Vector Databases
+Common choices for storing and searching embeddings include pgvector (a Postgres extension, convenient when already using Postgres/Supabase), Pinecone (managed, purpose-built for vector search at scale), Weaviate, and Chroma (lightweight, good for prototyping). Approximate nearest neighbor (ANN) indexes such as IVFFlat or HNSW trade a small amount of recall accuracy for large gains in search speed at scale.
+
+Retrieval Quality
+Retrieval quality is commonly evaluated with metrics like recall@k (whether the relevant chunk appears in the top k results) and mean reciprocal rank (MRR). Hybrid search, combining dense vector similarity with traditional keyword-based (BM25) search, often outperforms either method alone, especially for queries containing specific named entities, numbers, or exact phrases that embeddings can under-weight.
+
+Generation and Grounding
+Once relevant chunks are retrieved, they are inserted into the language model's context window alongside the user's question, typically with an instruction to answer only using the provided context and to cite which chunk supported each claim. This citation step is important for user trust and for debugging cases where the model still hallucinates despite having correct context available.
+
+Common Failure Modes
+Three common RAG failure modes are: (1) retrieval failure, where the relevant chunk exists in the database but isn't retrieved, often due to a semantic mismatch between how the question and the source text are phrased; (2) context dilution, where too many irrelevant chunks are included alongside the correct one, making it harder for the model to focus; and (3) grounding failure, where the correct chunk is retrieved but the model still generates an answer not actually supported by it.
