@@ -35,7 +35,15 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Missing source" }, { status: 400 });
   }
 
-  const { error } = await supabase.from("documents").delete().eq("source", source);
+  // Scope to the currently active embedding model, same as GET/retrieval —
+  // otherwise deleting a document shown under one AI_MODE could also delete
+  // a same-named document embedded under a different mode that isn't even
+  // visible/selectable right now.
+  const { error } = await supabase
+    .from("documents")
+    .delete()
+    .eq("source", source)
+    .eq("embedding_model", activeEmbeddingModel());
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
