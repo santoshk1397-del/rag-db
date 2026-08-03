@@ -44,3 +44,45 @@ as $$
   order by embedding <=> query_embedding
   limit match_count;
 $$;
+
+-- ---------- rate limiting ----------
+-- One row per (route, client) key, e.g. "upload:203.0.113.4". A fixed window:
+-- once window_start is older than p_window_seconds, the counter resets.
+create table if not exists rate_limits (
+  key text primary key,
+  count int not null default 0,
+  window_start timestamptz not null default now()
+);
+
+-- Returns true if this call is allowed (and records it), false if the caller
+-- is over the limit for the current window. The upsert is a single atomic
+-- statement, so concurrent requests for the same key can't race each other.
+create or replace function check_rate_limit(
+  p_key text,
+  p_limit int,
+  p_window_seconds int
+)
+returns boolean
+language plpgsql
+as $$
+declare
+  v_count int;
+begin
+  insert into rate_limits (key, count, window_start)
+  values (p_key, 1, now())
+  on conflict (key) do update
+    set count = case
+          when rate_limits.window_start < now() - (p_window_seconds || ' seconds')::interval
+            then 1
+          else rate_limits.count + 1
+        end,
+        window_start = case
+          when rate_limits.window_start < now() - (p_window_seconds || ' seconds')::interval
+            then now()
+          else rate_limits.window_start
+        end
+  returning count into v_count;
+
+  return v_count <= p_limit;
+end;
+$$;

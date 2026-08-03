@@ -37,7 +37,8 @@ export default function Home() {
   const [uploadStatus, setUploadStatus] = useState<{ text: string; error?: boolean } | null>(null);
   const [indexing, setIndexing] = useState(false);
   const [question, setQuestion] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // waiting for the first token (drives the bouncing dots)
+  const [busy, setBusy] = useState(false); // a request is in flight at all, start to finish (drives the Ask button)
   const [history, setHistory] = useState<ChatEntry[]>([]);
 
   const [allSources, setAllSources] = useState<DocSource[]>([]);
@@ -47,6 +48,11 @@ export default function Home() {
   const [usage, setUsage] = useState<Usage>(ZERO_USAGE);
   const [deletingSource, setDeletingSource] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DocSource | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [history.length, loading]);
 
   const filteredSources = allSources.filter((s) =>
     s.source.toLowerCase().includes(sourceFilter.trim().toLowerCase())
@@ -123,53 +129,91 @@ export default function Home() {
     setIndexing(true);
     setUploadStatus(null);
 
-    const formData = new FormData();
-    formData.append("file", file);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
-    const data = await res.json();
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
 
-    setUploadStatus(
-      res.ok
-        ? { text: `Indexed ${data.chunksIndexed} chunks from "${data.source}"` }
-        : { text: data.error ?? "Something went wrong", error: true }
-    );
-    setIndexing(false);
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        // response wasn't valid JSON — fall through to the generic message below
+      }
 
-    if (res.ok) {
-      setFile(null);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      setUsage((u) => ({ ...u, voyageTokens: u.voyageTokens + (data.usage?.voyageTokens ?? 0) }));
-      await refreshSources();
+      setUploadStatus(
+        res.ok
+          ? { text: `Indexed ${data?.chunksIndexed} chunks from "${data?.source}"` }
+          : { text: data?.error ?? `Upload failed (${res.status})`, error: true }
+      );
+
+      if (res.ok) {
+        setFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setUsage((u) => ({ ...u, voyageTokens: u.voyageTokens + (data?.usage?.voyageTokens ?? 0) }));
+        await refreshSources();
+      }
+    } catch {
+      setUploadStatus({ text: "Network error — please try again", error: true });
+    } finally {
+      setIndexing(false);
     }
   }
 
   async function handleAsk(e: React.FormEvent) {
     e.preventDefault();
-    if (!question.trim()) return;
+    if (!question.trim() || busy) return;
+    setBusy(true);
     setLoading(true);
     const askedQuestion = question;
+    setQuestion("");
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, sources: Array.from(selectedSources) }),
-    });
-    const data = await res.json();
+    try {
+      const priorTurns = history
+        .filter((h) => !h.error)
+        .map((h) => ({ question: h.question, answer: h.answer }));
 
-    if (res.ok) {
-      setHistory((h) => [...h, { question: askedQuestion, answer: data.answer, sources: data.sources }]);
-      setQuestion("");
-      setUsage((u) => ({
-        voyageTokens: u.voyageTokens + (data.usage?.voyageTokens ?? 0),
-        groqPrompt: u.groqPrompt + (data.usage?.groqTokens?.prompt ?? 0),
-        groqCompletion: u.groqCompletion + (data.usage?.groqTokens?.completion ?? 0),
-        groqTotal: u.groqTotal + (data.usage?.groqTokens?.total ?? 0),
-      }));
-    } else {
-      setHistory((h) => [...h, { question: askedQuestion, answer: data.error, sources: [], error: true }]);
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: askedQuestion,
+          sources: Array.from(selectedSources),
+          history: priorTurns,
+        }),
+      });
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        // response wasn't valid JSON — fall through to the generic message below
+      }
+
+      if (res.ok && data) {
+        setHistory((h) => [...h, { question: askedQuestion, answer: data.answer, sources: data.sources }]);
+        setUsage((u) => ({
+          voyageTokens: u.voyageTokens + (data.usage?.voyageTokens ?? 0),
+          groqPrompt: u.groqPrompt + (data.usage?.groqTokens?.prompt ?? 0),
+          groqCompletion: u.groqCompletion + (data.usage?.groqTokens?.completion ?? 0),
+          groqTotal: u.groqTotal + (data.usage?.groqTokens?.total ?? 0),
+        }));
+      } else {
+        setHistory((h) => [
+          ...h,
+          { question: askedQuestion, answer: data?.error ?? `Request failed (${res.status})`, sources: [], error: true },
+        ]);
+      }
+    } catch {
+      setHistory((h) => [
+        ...h,
+        { question: askedQuestion, answer: "Network error — please try again", sources: [], error: true },
+      ]);
+    } finally {
+      setLoading(false);
+      setBusy(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -347,8 +391,28 @@ export default function Home() {
 
       {/* Right: chat */}
       <div className="flex flex-col gap-4">
+      {history.length > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => setHistory([])}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 transition hover:text-rose-300"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m2 0v12a2 2 0 01-2 2H9a2 2 0 01-2-2V7h10z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Clear chat
+          </button>
+        </div>
+      )}
       {/* Chat history */}
-      <div className="flex flex-col gap-4">
+      <div className="flex max-h-[65vh] flex-col gap-4 overflow-y-auto pr-1">
         {history.length === 0 && (
           <div className="rounded-2xl border border-dashed border-white/10 px-6 py-10 text-center text-sm text-neutral-500">
             {allSources.length === 0
@@ -393,6 +457,7 @@ export default function Home() {
             <span className="bounce-dot h-1.5 w-1.5 rounded-full bg-neutral-400" />
           </div>
         )}
+        <div ref={chatEndRef} />
       </div>
 
       {/* Ask */}
@@ -400,12 +465,13 @@ export default function Home() {
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
+          disabled={busy}
           placeholder="Ask a question about your indexed documents…"
-          className="flex-1 rounded-xl border border-white/10 bg-neutral-900/90 px-4 py-3 text-sm text-neutral-100 shadow-lg shadow-black/30 backdrop-blur placeholder:text-neutral-500 focus:border-indigo-400/50 focus:outline-none"
+          className="flex-1 rounded-xl border border-white/10 bg-neutral-900/90 px-4 py-3 text-sm text-neutral-100 shadow-lg shadow-black/30 backdrop-blur placeholder:text-neutral-500 focus:border-indigo-400/50 focus:outline-none disabled:opacity-60"
         />
         <span className="group relative">
           <button
-            disabled={loading || !question.trim() || selectedSources.size === 0}
+            disabled={busy || !question.trim() || selectedSources.size === 0}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
           >
             {loading ? <Spinner /> : "Ask"}

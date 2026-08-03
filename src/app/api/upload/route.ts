@@ -3,10 +3,24 @@ import pdfParse from "pdf-parse";
 import { chunkText } from "@/lib/chunk";
 import { embedDocuments } from "@/lib/embeddings";
 import { supabase } from "@/lib/supabase";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { providerErrorResponse } from "@/lib/providerError";
 
 export const runtime = "nodejs";
 
+const UPLOAD_LIMIT = 10;
+const UPLOAD_WINDOW_SECONDS = 60 * 60; // 1 hour
+
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const allowed = await checkRateLimit(`upload:${ip}`, UPLOAD_LIMIT, UPLOAD_WINDOW_SECONDS);
+  if (!allowed) {
+    return NextResponse.json(
+      { error: `Rate limit exceeded: max ${UPLOAD_LIMIT} uploads per hour. Try again later.` },
+      { status: 429 }
+    );
+  }
+
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
 
@@ -23,7 +37,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No extractable text in file" }, { status: 400 });
   }
 
-  const { embeddings, tokens } = await embedDocuments(chunks);
+  let embeddings: number[][];
+  let tokens: number;
+  try {
+    ({ embeddings, tokens } = await embedDocuments(chunks));
+  } catch (err) {
+    return providerErrorResponse("Voyage AI", err);
+  }
 
   const rows = chunks.map((content, i) => ({
     source: file.name,
