@@ -19,14 +19,18 @@ async function embed(texts: string[], inputType: "document" | "query") {
   }
 
   const data = await res.json();
-  return data.data.map((d: { embedding: number[] }) => d.embedding);
+  return {
+    embeddings: data.data.map((d: { embedding: number[] }) => d.embedding) as number[][],
+    tokens: (data.usage?.total_tokens as number) ?? 0,
+  };
 }
 
-export function embedDocuments(texts: string[]) {
-  return embed(texts, "document");
+export async function embedDocuments(texts: string[]) {
+  const { embeddings, tokens } = await embed(texts, "document");
+  return { embeddings, tokens };
 }
 
 export async function embedQuery(text: string) {
-  const [embedding] = await embed([text], "query");
-  return embedding;
+  const { embeddings, tokens } = await embed([text], "query");
+  return { embedding: embeddings[0], tokens };
 }
