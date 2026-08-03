@@ -15,7 +15,11 @@ async function embed(texts: string[], inputType: "document" | "query") {
   });
 
   if (!res.ok) {
-    throw new Error(`Voyage embeddings request failed: ${res.status} ${await res.text()}`);
+    const err = new Error(
+      `Voyage embeddings request failed: ${res.status} ${await res.text()}`
+    ) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
 
   const data = await res.json();
