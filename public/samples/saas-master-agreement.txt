@@ -1,0 +1,71 @@
+Meridian Cloud Systems, Inc. — Master Subscription Agreement
+
+This Master Subscription Agreement ("Agreement") is entered into between Meridian Cloud Systems, Inc. ("Meridian," "we," "us") and the customer identified in the applicable Order Form ("Customer," "you"). This Agreement governs Customer's access to and use of Meridian's cloud-based workforce analytics platform (the "Service").
+
+1. Definitions
+1.1 "Order Form" means the ordering document specifying the Service subscribed to, executed by both parties, which references and incorporates this Agreement.
+1.2 "Subscription Term" means the period specified in the Order Form during which Customer is entitled to access the Service.
+1.3 "Authorized Users" means employees, contractors, and agents of Customer who are authorized to use the Service under Customer's account and for whom subscription fees have been paid.
+1.4 "Customer Data" means all electronic data, text, or other information submitted to the Service by or on behalf of Customer through Authorized Users.
+1.5 "Documentation" means Meridian's user guides and administrator guides for the Service, as updated from time to time.
+
+2. Access and Use Rights
+2.1 Subject to the terms of this Agreement, Meridian grants Customer a non-exclusive, non-transferable right to access and use the Service during the Subscription Term, solely for Customer's internal business operations and in accordance with the Documentation.
+2.2 Customer shall not, and shall not permit any third party to: (a) license, sublicense, sell, resell, rent, lease, transfer, or otherwise commercially exploit the Service; (b) reverse engineer, decompile, or disassemble the Service; (c) use the Service to build a competitive product; or (d) remove any proprietary notices from the Service.
+2.3 Customer is responsible for all activity occurring under Authorized User accounts and shall ensure Authorized Users comply with this Agreement.
+2.4 Meridian reserves the right to suspend access to the Service if Customer's use poses a security risk to Meridian or other customers, provided Meridian gives notice where reasonably practicable and restores access promptly once the risk is resolved.
+
+3. Fees and Payment
+3.1 Customer shall pay all fees specified in the Order Form. Unless otherwise stated, fees are quoted and payable in United States dollars.
+3.2 Fees are invoiced annually in advance unless the Order Form specifies a different billing frequency. Payment is due within thirty (30) days of the invoice date.
+3.3 Late payments accrue interest at the rate of 1.5% per month or the maximum rate permitted by law, whichever is lower. Meridian may suspend Service access for accounts more than sixty (60) days past due, following ten (10) days' written notice.
+3.4 All fees are exclusive of taxes. Customer is responsible for all sales, use, VAT, and similar taxes, excluding taxes based on Meridian's net income.
+3.5 Except as expressly provided in this Agreement, fees are non-refundable and non-cancelable once paid.
+
+4. Term and Termination
+4.1 This Agreement commences on the Effective Date and continues for the Subscription Term specified in the Order Form, automatically renewing for successive periods equal to the initial Subscription Term unless either party gives notice of non-renewal at least sixty (60) days before the end of the then-current term.
+4.2 Either party may terminate this Agreement for cause if the other party materially breaches this Agreement and fails to cure such breach within thirty (30) days of written notice.
+4.3 Upon termination or expiration, Customer's right to access the Service ceases immediately. Meridian will make Customer Data available for export for thirty (30) days following termination, after which Meridian may delete Customer Data in accordance with its data retention policy.
+4.4 Sections 3 (Fees), 5 (Confidentiality), 6 (Data Protection), 8 (Limitation of Liability), and 9 (General Provisions) survive termination of this Agreement.
+
+5. Confidentiality
+5.1 "Confidential Information" means non-public information disclosed by one party to the other that is designated confidential or should reasonably be understood to be confidential given the nature of the information and circumstances of disclosure.
+5.2 The receiving party shall use the same degree of care it uses for its own confidential information of similar nature, and no less than reasonable care, to protect the disclosing party's Confidential Information.
+5.3 Confidential Information does not include information that: (a) is or becomes publicly available without breach of this Agreement; (b) was rightfully known to the receiving party prior to disclosure; (c) is independently developed without use of the disclosing party's Confidential Information; or (d) is rightfully obtained from a third party without restriction.
+5.4 The receiving party may disclose Confidential Information if required by law, provided it gives the disclosing party prompt notice (where legally permitted) to allow it to seek a protective order.
+
+6. Data Protection and Security
+6.1 Meridian shall maintain administrative, physical, and technical safeguards designed to protect the security, confidentiality, and integrity of Customer Data, as described in Meridian's Security Overview, incorporated by reference.
+6.2 Meridian shall not access Customer Data except: (a) to provide the Service and related support; (b) to prevent or address service or technical problems; (c) as required by law; or (d) as expressly permitted in writing by Customer.
+6.3 Where Meridian processes personal data on Customer's behalf, the parties shall enter into a Data Processing Addendum, which is incorporated into and forms part of this Agreement.
+6.4 Meridian shall notify Customer without undue delay, and in any event within seventy-two (72) hours, after becoming aware of a confirmed security incident affecting Customer Data.
+6.5 Meridian conducts independent third-party audits and maintains SOC 2 Type II certification, a summary of which will be made available to Customer upon reasonable request.
+
+7. Intellectual Property
+7.1 Meridian retains all right, title, and interest in and to the Service, including all related intellectual property rights. No rights are granted to Customer other than as expressly set forth in this Agreement.
+7.2 Customer retains all right, title, and interest in and to Customer Data. Customer grants Meridian a limited license to host, copy, transmit, and display Customer Data solely as necessary to provide the Service.
+7.3 Meridian may use aggregated and anonymized data derived from Customer's use of the Service to improve the Service, provided such data does not identify Customer or any individual.
+7.4 Customer may provide suggestions, enhancement requests, or feedback regarding the Service. Meridian may use such feedback without restriction or obligation to Customer.
+
+8. Warranties and Disclaimers
+8.1 Meridian warrants that the Service will perform materially in accordance with the Documentation during the Subscription Term.
+8.2 As Customer's sole and exclusive remedy for breach of the warranty in Section 8.1, Meridian will use commercially reasonable efforts to correct the non-conforming Service, or if Meridian cannot do so within a reasonable time, either party may terminate the affected Order Form and Meridian will refund prepaid, unused fees.
+8.3 EXCEPT AS EXPRESSLY SET FORTH HEREIN, THE SERVICE IS PROVIDED "AS IS," AND MERIDIAN DISCLAIMS ALL OTHER WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+9. Limitation of Liability
+9.1 NEITHER PARTY SHALL BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING LOST PROFITS OR LOST DATA, ARISING OUT OF OR RELATED TO THIS AGREEMENT, REGARDLESS OF THE THEORY OF LIABILITY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+9.2 EACH PARTY'S TOTAL LIABILITY ARISING OUT OF OR RELATED TO THIS AGREEMENT SHALL NOT EXCEED THE FEES PAID OR PAYABLE BY CUSTOMER TO MERIDIAN IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.
+9.3 The limitations in this Section 9 do not apply to: (a) either party's indemnification obligations; (b) breaches of Section 5 (Confidentiality); (c) Customer's payment obligations; or (d) either party's gross negligence or willful misconduct.
+
+10. Indemnification
+10.1 Meridian shall defend Customer against any third-party claim alleging that the Service infringes a valid patent, copyright, or trademark, and shall indemnify Customer for damages finally awarded, provided Customer promptly notifies Meridian of the claim and cooperates in its defense.
+10.2 Meridian's indemnification obligation does not apply to claims arising from: (a) modifications to the Service not made by Meridian; (b) use of the Service in combination with products not provided by Meridian; or (c) use of the Service in violation of this Agreement.
+10.3 If the Service becomes, or Meridian believes it is likely to become, the subject of an infringement claim, Meridian may, at its option, procure the right for Customer to continue using the Service, replace the Service with a non-infringing equivalent, or terminate the Order Form and refund prepaid, unused fees.
+
+11. General Provisions
+11.1 This Agreement, together with all Order Forms, constitutes the entire agreement between the parties and supersedes all prior agreements relating to its subject matter.
+11.2 This Agreement is governed by the laws of the State of Delaware, without regard to its conflict of laws principles. Any disputes shall be resolved exclusively in the state or federal courts located in Delaware.
+11.3 Neither party may assign this Agreement without the other party's prior written consent, except in connection with a merger, acquisition, or sale of substantially all assets, provided the assignee agrees to be bound by this Agreement.
+11.4 If any provision of this Agreement is held unenforceable, the remaining provisions remain in full force and effect, and the unenforceable provision shall be modified to the minimum extent necessary to make it enforceable.
+11.5 Neither party shall be liable for delays or failures in performance resulting from causes beyond its reasonable control, including acts of God, natural disasters, war, terrorism, labor disputes, or internet or utility failures.
+11.6 All notices under this Agreement shall be in writing and sent to the addresses specified in the applicable Order Form, and shall be deemed given upon receipt if delivered by email with confirmation of delivery, or three (3) business days after being sent by certified mail.

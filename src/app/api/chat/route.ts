@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing question" }, { status: 400 });
   }
 
-  const queryEmbedding = await embedQuery(question);
+  const { embedding: queryEmbedding, tokens: voyageTokens } = await embedQuery(question);
 
   const { data: matches, error } = await supabase.rpc("match_documents", {
     query_embedding: queryEmbedding,
@@ -58,5 +58,13 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     answer,
     sources: docs.map((d) => ({ source: d.source, similarity: d.similarity })),
+    usage: {
+      voyageTokens,
+      groqTokens: {
+        prompt: completion.usage?.prompt_tokens ?? 0,
+        completion: completion.usage?.completion_tokens ?? 0,
+        total: completion.usage?.total_tokens ?? 0,
+      },
+    },
   });
 }

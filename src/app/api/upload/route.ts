@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No extractable text in file" }, { status: 400 });
   }
 
-  const embeddings = await embedDocuments(chunks);
+  const { embeddings, tokens } = await embedDocuments(chunks);
 
   const rows = chunks.map((content, i) => ({
     source: file.name,
@@ -36,5 +36,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ chunksIndexed: rows.length, source: file.name });
+  return NextResponse.json({
+    chunksIndexed: rows.length,
+    source: file.name,
+    usage: { voyageTokens: tokens },
+  });
 }
