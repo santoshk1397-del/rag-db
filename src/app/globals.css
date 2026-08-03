@@ -4,10 +4,7 @@
 
 body {
   @apply text-neutral-100;
-  background:
-    radial-gradient(1100px 500px at 15% -10%, rgba(99, 102, 241, 0.18), transparent 60%),
-    radial-gradient(900px 500px at 100% 0%, rgba(56, 189, 248, 0.12), transparent 55%),
-    #08090d;
+  background: #08090d;
   min-height: 100vh;
 }
 
