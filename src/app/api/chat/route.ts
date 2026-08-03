@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { embedQuery } from "@/lib/embeddings";
+import { embedQuery, activeEmbeddingModel } from "@/lib/embeddingProvider";
 import { supabase } from "@/lib/supabase";
-import { groq, CHAT_MODEL } from "@/lib/groq";
+import { generateChatCompletion } from "@/lib/chatProvider";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { providerErrorResponse } from "@/lib/providerError";
+import { isLocalMode } from "@/lib/aiMode";
 
 export const runtime = "nodejs";
 
@@ -19,18 +20,23 @@ type MatchedDoc = {
 type HistoryTurn = { question: string; answer: string };
 
 // How many prior turns to carry into both retrieval and the model's context.
-// Bounded so a long conversation doesn't grow the prompt (and Groq token
-// usage) without limit.
+// Bounded so a long conversation doesn't grow the prompt (and generation
+// token usage) without limit.
 const MAX_HISTORY_TURNS = 6;
 
 export async function POST(req: NextRequest) {
-  const ip = getClientIp(req);
-  const allowed = await checkRateLimit(`chat:${ip}`, CHAT_LIMIT, CHAT_WINDOW_SECONDS);
-  if (!allowed) {
-    return NextResponse.json(
-      { error: `Rate limit exceeded: max ${CHAT_LIMIT} questions per hour. Try again later.` },
-      { status: 429 }
-    );
+  // The rate limiter exists to protect hosted-provider quotas (Groq/Voyage
+  // free tiers) — not needed in local mode, where generation/embeddings run
+  // on your own machine at no per-request cost.
+  if (!isLocalMode()) {
+    const ip = getClientIp(req);
+    const allowed = await checkRateLimit(`chat:${ip}`, CHAT_LIMIT, CHAT_WINDOW_SECONDS);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Rate limit exceeded: max ${CHAT_LIMIT} questions per hour. Try again later.` },
+        { status: 429 }
+      );
+    }
   }
 
   const { question, sources: selectedSources, history: rawHistory } = await req.json();
@@ -49,11 +55,11 @@ export async function POST(req: NextRequest) {
     history.length > 0 ? `${history[history.length - 1].question}\n${question}` : question;
 
   let queryEmbedding: number[];
-  let voyageTokens: number;
+  let embeddingTokens: number;
   try {
-    ({ embedding: queryEmbedding, tokens: voyageTokens } = await embedQuery(retrievalQuery));
+    ({ embedding: queryEmbedding, tokens: embeddingTokens } = await embedQuery(retrievalQuery));
   } catch (err) {
-    return providerErrorResponse("Voyage AI", err);
+    return providerErrorResponse(err, "Embedding provider");
   }
 
   const { data: matches, error } = await supabase.rpc("match_documents", {
@@ -63,6 +69,7 @@ export async function POST(req: NextRequest) {
       Array.isArray(selectedSources) && selectedSources.length > 0
         ? selectedSources
         : null,
+    filter_embedding_model: activeEmbeddingModel(),
   });
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -78,44 +85,34 @@ export async function POST(req: NextRequest) {
     { role: "assistant" as const, content: turn.answer },
   ]);
 
-  let completion;
+  let result;
   try {
-    completion = await groq.chat.completions.create({
-      model: CHAT_MODEL,
-      max_tokens: 1024,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You answer questions using ONLY the provided context. Cite sources inline using [1], [2], etc. " +
-            "If the context doesn't contain the answer, say so plainly instead of guessing. " +
-            "Prior turns are included for conversational context (e.g. resolving 'it' or 'the other one') " +
-            "— the context below reflects only the CURRENT question's retrieval, so don't assume it also " +
-            "covers what earlier turns discussed unless it's repeated here.",
-        },
-        ...historyMessages,
-        {
-          role: "user",
-          content: `Context:\n\n${context}\n\nQuestion: ${question}`,
-        },
-      ],
-    });
+    result = await generateChatCompletion([
+      {
+        role: "system",
+        content:
+          "You answer questions using ONLY the provided context. Cite sources inline using [1], [2], etc. " +
+          "If the context doesn't contain the answer, say so plainly instead of guessing. " +
+          "Prior turns are included for conversational context (e.g. resolving 'it' or 'the other one') " +
+          "— the context below reflects only the CURRENT question's retrieval, so don't assume it also " +
+          "covers what earlier turns discussed unless it's repeated here.",
+      },
+      ...historyMessages,
+      {
+        role: "user",
+        content: `Context:\n\n${context}\n\nQuestion: ${question}`,
+      },
+    ]);
   } catch (err) {
-    return providerErrorResponse("Groq", err);
+    return providerErrorResponse(err, "Chat provider");
   }
 
-  const answer = completion.choices[0]?.message?.content ?? "";
-
   return NextResponse.json({
-    answer,
+    answer: result.content,
     sources: docs.map((d) => ({ source: d.source, similarity: d.similarity })),
     usage: {
-      voyageTokens,
-      groqTokens: {
-        prompt: completion.usage?.prompt_tokens ?? 0,
-        completion: completion.usage?.completion_tokens ?? 0,
-        total: completion.usage?.total_tokens ?? 0,
-      },
+      embeddingTokens,
+      chatTokens: result.usage,
     },
   });
 }

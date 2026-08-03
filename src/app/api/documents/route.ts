@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { activeEmbeddingModel } from "@/lib/embeddingProvider";
 
 export const runtime = "nodejs";
 
 export async function GET() {
+  // Only list documents embedded with whichever model is currently active —
+  // a document embedded under a different model (e.g. uploaded before an
+  // EMBEDDING_PROVIDER switch) can't be searched against a query embedded
+  // with today's model, so it'd be misleading to offer it as selectable.
   const { data, error } = await supabase
     .from("documents")
     .select("source")
+    .eq("embedding_model", activeEmbeddingModel())
     .order("source");
 
   if (error) {

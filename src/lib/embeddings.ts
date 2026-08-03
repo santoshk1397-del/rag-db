@@ -17,8 +17,9 @@ async function embed(texts: string[], inputType: "document" | "query") {
   if (!res.ok) {
     const err = new Error(
       `Voyage embeddings request failed: ${res.status} ${await res.text()}`
-    ) as Error & { status?: number };
+    ) as Error & { status?: number; provider?: string };
     err.status = res.status;
+    err.provider = "Voyage AI";
     throw err;
   }
 
