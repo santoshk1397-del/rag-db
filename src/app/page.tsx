@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from "react";
 
 type Source = { source: string; similarity: number };
 type ChatEntry = { question: string; answer: string; sources: Source[]; error?: boolean };
-type Usage = { voyageTokens: number; groqPrompt: number; groqCompletion: number; groqTotal: number };
+type Usage = { embeddingTokens: number; chatPrompt: number; chatCompletion: number; chatTotal: number };
 type DocSource = { source: string; chunks: number };
 
-const ZERO_USAGE: Usage = { voyageTokens: 0, groqPrompt: 0, groqCompletion: 0, groqTotal: 0 };
+const ZERO_USAGE: Usage = { embeddingTokens: 0, chatPrompt: 0, chatCompletion: 0, chatTotal: 0 };
 
 const SAMPLE_FILES = [
   {
@@ -151,7 +151,7 @@ export default function Home() {
       if (res.ok) {
         setFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
-        setUsage((u) => ({ ...u, voyageTokens: u.voyageTokens + (data?.usage?.voyageTokens ?? 0) }));
+        setUsage((u) => ({ ...u, embeddingTokens: u.embeddingTokens + (data?.usage?.embeddingTokens ?? 0) }));
         await refreshSources();
       }
     } catch {
@@ -194,10 +194,10 @@ export default function Home() {
       if (res.ok && data) {
         setHistory((h) => [...h, { question: askedQuestion, answer: data.answer, sources: data.sources }]);
         setUsage((u) => ({
-          voyageTokens: u.voyageTokens + (data.usage?.voyageTokens ?? 0),
-          groqPrompt: u.groqPrompt + (data.usage?.groqTokens?.prompt ?? 0),
-          groqCompletion: u.groqCompletion + (data.usage?.groqTokens?.completion ?? 0),
-          groqTotal: u.groqTotal + (data.usage?.groqTokens?.total ?? 0),
+          embeddingTokens: u.embeddingTokens + (data.usage?.embeddingTokens ?? 0),
+          chatPrompt: u.chatPrompt + (data.usage?.chatTokens?.prompt ?? 0),
+          chatCompletion: u.chatCompletion + (data.usage?.chatTokens?.completion ?? 0),
+          chatTotal: u.chatTotal + (data.usage?.chatTokens?.total ?? 0),
         }));
       } else {
         setHistory((h) => [
@@ -495,15 +495,15 @@ export default function Home() {
           </span>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-            <span className="text-neutral-300">Voyage AI (embeddings)</span>
-            <span className="font-mono text-neutral-500">{usage.voyageTokens.toLocaleString()} tok</span>
+            <span className="text-neutral-300">Embeddings</span>
+            <span className="font-mono text-neutral-500">{usage.embeddingTokens.toLocaleString()} tok</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-            <span className="text-neutral-300">Groq (Llama 3.3 70B)</span>
+            <span className="text-neutral-300">Generation</span>
             <span className="font-mono text-neutral-500">
-              {usage.groqTotal.toLocaleString()} tok
-              <span className="text-neutral-600"> ({usage.groqPrompt.toLocaleString()} in / {usage.groqCompletion.toLocaleString()} out)</span>
+              {usage.chatTotal.toLocaleString()} tok
+              <span className="text-neutral-600"> ({usage.chatPrompt.toLocaleString()} in / {usage.chatCompletion.toLocaleString()} out)</span>
             </span>
           </div>
         </div>

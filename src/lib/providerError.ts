@@ -11,7 +11,16 @@ function statusOf(err: unknown): number | undefined {
   return undefined;
 }
 
-export function providerErrorResponse(provider: "Voyage AI" | "Groq", err: unknown) {
+function providerOf(err: unknown, fallback: string): string {
+  if (err && typeof err === "object" && "provider" in err) {
+    const provider = (err as { provider?: unknown }).provider;
+    if (typeof provider === "string") return provider;
+  }
+  return fallback;
+}
+
+export function providerErrorResponse(err: unknown, fallbackProvider: string) {
+  const provider = providerOf(err, fallbackProvider);
   const status = statusOf(err);
 
   if (status === 429) {
@@ -24,8 +33,8 @@ export function providerErrorResponse(provider: "Voyage AI" | "Groq", err: unkno
   }
 
   console.error(`${provider} request failed:`, err);
-  return NextResponse.json(
-    { error: `${provider} request failed. Please try again.` },
-    { status: 502 }
-  );
+  // Prefer the error's own message when we have one (e.g. Ollama's
+  // "make sure it's running locally" hint) over a generic fallback.
+  const message = err instanceof Error && err.message ? err.message : `${provider} request failed. Please try again.`;
+  return NextResponse.json({ error: message }, { status: 502 });
 }

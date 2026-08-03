@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import pdfParse from "pdf-parse";
 import { chunkText } from "@/lib/chunk";
-import { embedDocuments } from "@/lib/embeddings";
+import { embedDocuments, activeEmbeddingModel } from "@/lib/embeddingProvider";
 import { supabase } from "@/lib/supabase";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 import { providerErrorResponse } from "@/lib/providerError";
+import { isLocalMode } from "@/lib/aiMode";
 
 export const runtime = "nodejs";
 
@@ -12,13 +13,18 @@ const UPLOAD_LIMIT = 10;
 const UPLOAD_WINDOW_SECONDS = 60 * 60; // 1 hour
 
 export async function POST(req: NextRequest) {
-  const ip = getClientIp(req);
-  const allowed = await checkRateLimit(`upload:${ip}`, UPLOAD_LIMIT, UPLOAD_WINDOW_SECONDS);
-  if (!allowed) {
-    return NextResponse.json(
-      { error: `Rate limit exceeded: max ${UPLOAD_LIMIT} uploads per hour. Try again later.` },
-      { status: 429 }
-    );
+  // The rate limiter exists to protect hosted-provider quotas (Groq/Voyage
+  // free tiers) — not needed in local mode, where generation/embeddings run
+  // on your own machine at no per-request cost.
+  if (!isLocalMode()) {
+    const ip = getClientIp(req);
+    const allowed = await checkRateLimit(`upload:${ip}`, UPLOAD_LIMIT, UPLOAD_WINDOW_SECONDS);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Rate limit exceeded: max ${UPLOAD_LIMIT} uploads per hour. Try again later.` },
+        { status: 429 }
+      );
+    }
   }
 
   const formData = await req.formData();
@@ -42,13 +48,15 @@ export async function POST(req: NextRequest) {
   try {
     ({ embeddings, tokens } = await embedDocuments(chunks));
   } catch (err) {
-    return providerErrorResponse("Voyage AI", err);
+    return providerErrorResponse(err, "Embedding provider");
   }
 
+  const embeddingModel = activeEmbeddingModel();
   const rows = chunks.map((content, i) => ({
     source: file.name,
     content,
     embedding: embeddings[i],
+    embedding_model: embeddingModel,
   }));
 
   const { error } = await supabase.from("documents").insert(rows);
@@ -59,6 +67,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     chunksIndexed: rows.length,
     source: file.name,
-    usage: { voyageTokens: tokens },
+    usage: { embeddingTokens: tokens },
   });
 }
